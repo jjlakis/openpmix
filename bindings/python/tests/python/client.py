@@ -141,7 +141,7 @@ def main():
     test_fence(foo, procs, info)
 
     pdata_key = [{'key':'ARBITRARY'}]
-    test_lookup(foo, pdata_key, None)
+    test_lookup(foo, pdata_key, [])
 
     pykeys = ['ARBITRARY']
     info = []
