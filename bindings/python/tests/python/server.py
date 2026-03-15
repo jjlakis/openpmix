@@ -37,14 +37,18 @@ def main():
     # get our environment as a base
     env = os.environ.copy()
 
-    # register a client
-    uid = os.getuid()
-    gid = os.getgid()
-    rc = foo.register_client({'nspace':"testnspace", 'rank':0}, uid, gid)
+    # register a client - could be any UID/GUI, we disable PSEC
+    uid = 13#os.getuid()
+    gid = 13#os.getgid()
+    rc = foo.register_client({'nspace':"t0", 'rank':0}, uid, gid)
+
+    # This must sadly happen.
     print("RegClient ", rc)
     # setup the fork
-    rc = foo.setup_fork({'nspace':"testnspace", 'rank':0}, env)
+    rc = foo.setup_fork({'nspace':"t0", 'rank':0}, env)
     print("SetupFrk", rc)
+    
+    print("ENVY TO: ", env)
 
     # setup the client argv
     args = ["./client.py"]
