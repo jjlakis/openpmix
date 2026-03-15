@@ -17,16 +17,16 @@ class GracefulKiller:
     self.kill_now = True
 
 def clientconnected(proc:tuple is not None):
-    print("CLIENT CONNECTED", proc)
+    print("[SERVER]CLIENT CONNECTED", proc)
     return PMIX_OPERATION_SUCCEEDED
 
 def clientfinalized(proc:tuple is not None):
-    print("CLIENT FINALIZED", proc)
+    print("[SERVER] CLIENT FINALIZED", proc)
     return PMIX_OPERATION_SUCCEEDED
 
 def clientfence(args:dict is not None):
     # check directives
-    print("CLIENTFENCE")
+    print("[SERVER] CLIENTFENCE")
     output = bytearray(0)
     try:
         if args['directives'] is not None:
@@ -48,7 +48,7 @@ def clientfence(args:dict is not None):
     return PMIX_SUCCESS, output
 
 def clientpublish(args:dict is not None):
-    print("SERVER: PUBLISH")
+    print("[SERVER] PUBLISH")
     for d in args['directives']:
         pdata = {}
         pdata['proc'] = args['proc']
@@ -59,7 +59,7 @@ def clientpublish(args:dict is not None):
     return PMIX_OPERATION_SUCCEEDED
 
 def clientunpublish(args:dict is not None):
-    print("SERVER: UNPUBLISH")
+    print("[SERVER] UNPUBLISH")
     for k in args['keys']:
         for d in pmix_locdata:
             if k == d['key']:
@@ -67,7 +67,7 @@ def clientunpublish(args:dict is not None):
     return PMIX_OPERATION_SUCCEEDED
 
 def clientlookup(args:dict is not None):
-    print("SERVER: LOOKUP")
+    print("[SERVER] LOOKUP")
     ret_pdata = []
     for k in args['keys']:
         for d in pmix_locdata:
@@ -77,7 +77,7 @@ def clientlookup(args:dict is not None):
     return PMIX_SUCCESS, ret_pdata
 
 def clientquery(args:dict is not None):
-    print("SERVER: QUERY")
+    print("[SERVER] QUERY")
     # return a python info list of dictionaries
     info = {}
     results = []
@@ -97,5 +97,5 @@ def clientquery(args:dict is not None):
     return rc, results
 
 def client_register_events(args:dict is not None):
-    print("CLIENT REGISTER EVENTS ", args['codes'])
+    print("[SERVER] CLIENT REGISTER EVENTS ", args['codes'])
     return PMIX_OPERATION_SUCCEEDED

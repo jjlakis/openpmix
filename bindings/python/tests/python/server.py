@@ -34,20 +34,18 @@ def main():
     # ‘value’: v, ‘val_type’: t}
     pmix_locdat = []
 
-    # get our environment as a base
-    env = os.environ.copy()
+    # Use empty environment, but add pythobduffered so we see the stdout
+    env = {'PYTHONUNBUFFERED': '1'}
 
     # register a client - could be any UID/GUI, we disable PSEC
     uid = 13#os.getuid()
     gid = 13#os.getgid()
     rc = foo.register_client({'nspace':"t0", 'rank':0}, uid, gid)
 
-    # This must sadly happen.
-    print("RegClient ", rc)
-    # setup the fork
+    # setup the fork - fill up the envs for client
     rc = foo.setup_fork({'nspace':"t0", 'rank':0}, env)
-    print("SetupFrk", rc)
-    
+    print("=== STARTING CLIENT ====", rc)
+
     print("ENVY TO: ", env)
 
     # setup the client argv
@@ -75,13 +73,13 @@ def main():
                 if read:
                     read = read.decode('utf-8').rstrip()
                     stdout_done = False
-                    print("stdout:", read)
+                    print("[CLIENT]stdout:", read)
             if fd == p.stderr.fileno():
                 read = p.stderr.readline()
                 if read:
                     read = read.decode('utf-8').rstrip()
                     stderr_done = False
-                    print("stderr:", read)
+                    print("[CLIENT]stderr:", read)
 
         if stdout_done and stderr_done:
             break
