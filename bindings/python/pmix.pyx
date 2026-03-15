@@ -1927,12 +1927,11 @@ cdef class PMIxServer(PMIxClient):
     def deregister_client(self, proc:dict):
         global active
         cdef pmix_proc_t p
-        cdef pmix_status_t rc
         pmix_copy_nspace(p.nspace, proc['nspace'])
         p.rank = proc['rank']
         with nogil:
-            rc = PMIx_server_deregister_client(&p, NULL, NULL)
-        return rc
+            PMIx_server_deregister_client(&p, NULL, NULL)
+        return PMIX_SUCCESS
 
     # Setup the environment of a child process that is to be forked
     # by the host
