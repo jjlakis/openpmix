@@ -28,13 +28,13 @@ def main():
     print("Initialized: ", rc)
     vers = foo.get_version()
     print("Version: ", vers)
-
+    
     # pdata = {‘proc’: {‘nspace’: mynspace, ‘rank’: myrank}, ‘key’: ky,
     # ‘value’: v, ‘val_type’: t}
     pmix_locdat = []
 
     # get our environment as a base
-    env = os.environ.copy()
+    env = {'PYTHONUNBUFFERED': '1'}
     # register an nspace for the client app
     (rc, regex) = foo.generate_regex(["test000","test001","test002"])
     print("Node regex, rc: ", regex, rc)
@@ -44,6 +44,7 @@ def main():
              {'key':PMIX_PROC_MAP, 'value':ppn, 'val_type':PMIX_STRING},
              {'key':PMIX_UNIV_SIZE, 'value':1, 'val_type':PMIX_UINT32},
              {'key':PMIX_JOB_SIZE, 'value':1, 'val_type':PMIX_UINT32}]
+
     print("REGISTERING NSPACE")
     rc = foo.register_nspace("testnspace", 1, kvals)
     print("RegNspace ", rc)
@@ -56,6 +57,7 @@ def main():
     # setup the fork
     rc = foo.setup_fork({'nspace':"testnspace", 'rank':0}, env)
     print("SetupFrk", rc)
+    print("ENVY TO:", env)
 
     # setup the client argv
     args = ["./client.py"]

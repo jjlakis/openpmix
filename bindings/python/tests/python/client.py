@@ -26,7 +26,7 @@ def test_commit(client):
         print("COMMIT TEST FAILED: ", client.error_string(rc))
 
 def test_fence(client, procs, info):
-    print("FENCE")
+    print("FENCE. Procs: {}, Info: {}".format(procs, info))
     global test_count, test_fails
     test_count = test_count + 1
     rc = client.fence(procs, info)
@@ -141,7 +141,7 @@ def main():
     test_fence(foo, procs, info)
 
     pdata_key = [{'key':'ARBITRARY'}]
-    test_lookup(foo, pdata_key, None)
+    test_lookup(foo, pdata_key, [])
 
     pykeys = ['ARBITRARY']
     info = []

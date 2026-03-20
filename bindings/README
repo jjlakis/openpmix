@@ -1,4 +1,4 @@
-Copyright (c) 2016-2018 Intel, Inc.  All rights reserved.
+Copyright (c) 2016-2018 Intel, Inc. All rights reserved.
 
 $COPYRIGHT$
 
@@ -17,5 +17,3 @@ There is only one rule to observe: you can wrap a framework, but you cannot wrap
 specific plugin within that framework. This constraint flows from the fact that
 plugins are only accessed via the framework interface - thus, there is no way to
 guarantee that a particular plugin will be the active selection.
-
-

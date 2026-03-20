@@ -25,6 +25,7 @@ def clientfinalized(proc:tuple is not None):
     return PMIX_OPERATION_SUCCEEDED
 
 def clientfence(args:dict is not None):
+
     # check directives
     print("CLIENTFENCE")
     output = bytearray(0)
