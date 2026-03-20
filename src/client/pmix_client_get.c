@@ -302,6 +302,19 @@ static pmix_status_t process_request(const pmix_proc_t *proc, const char key[],
 PMIX_EXPORT pmix_status_t PMIx_Get(const pmix_proc_t *proc, const char key[],
                                    const pmix_info_t info[], size_t ninfo, pmix_value_t **val)
 {
+
+    // Add very comprehensive parameter logging
+    fprintf(stdout, "[DEBUG] PMIx_Get() called - proc=%s, key=%s, ninfo=%zu\n",   
+            (NULL == proc) ? "NULL" : PMIX_NAME_PRINT(proc),   
+            (NULL == key) ? "NULL" : key, ninfo);  
+    if (info && ninfo > 0) {  
+        fprintf(stdout, "[DEBUG] PMIx_Get() info keys: ");  
+        for (size_t i = 0; i < ninfo; i++) {  
+            fprintf(stdout, "%s ", info[i].key);  
+        }  
+        fprintf(stdout, "\n");  
+    }
+
     pmix_cb_t *cb;
     pmix_get_logic_t *lg;
     pmix_status_t rc;
