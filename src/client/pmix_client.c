@@ -527,6 +527,18 @@ static void nevcb(pmix_status_t status, void *cbdata)
 pmix_status_t PMIx_Init(pmix_proc_t *proc,
                         pmix_info_t info[], size_t ninfo)
 {
+
+    // Add parameter logging  
+    fprintf(stdout, "[DEBUG] PMIx_Init() called - proc=%p, info=%p, ninfo=%zu\n",   
+            (void*)proc, (void*)info, ninfo);  
+    if (info && ninfo > 0) {  
+        fprintf(stdout, "[DEBUG] PMIx_Init() info keys: ");  
+        for (size_t i = 0; i < ninfo; i++) {  
+            fprintf(stdout, "%s ", info[i].key);  
+        }  
+        fprintf(stdout, "\n");  
+    }  
+
     char *evar, *suri;
     pmix_status_t rc = PMIX_SUCCESS;
     pmix_cb_t cb;
@@ -1048,6 +1060,17 @@ static void finwait_cbfunc(struct pmix_peer_t *pr, pmix_ptl_hdr_t *hdr, pmix_buf
 
 PMIX_EXPORT pmix_status_t PMIx_Finalize(const pmix_info_t info[], size_t ninfo)
 {
+    // Add parameter logging  
+    fprintf(stdout, "[DEBUG] PMIx_Finalize() called - info=%p, ninfo=%zu\n",   
+            (void*)info, ninfo);  
+    if (info && ninfo > 0) {  
+        fprintf(stdout, "[DEBUG] PMIx_Finalize() info keys: ");  
+        for (size_t i = 0; i < ninfo; i++) {  
+            fprintf(stdout, "%s ", info[i].key);  
+        }  
+        fprintf(stdout, "\n");  
+    }  
+
     pmix_buffer_t *msg;
     pmix_cmd_t cmd = PMIX_FINALIZE_CMD;
     pmix_status_t rc;

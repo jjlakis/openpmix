@@ -65,6 +65,23 @@ static void op_cbfunc(pmix_status_t status, void *cbdata);
 PMIX_EXPORT pmix_status_t PMIx_Fence(const pmix_proc_t procs[], size_t nprocs,
                                      const pmix_info_t info[], size_t ninfo)
 {
+    // Add parameter logging  
+    fprintf(stdout, "[DEBUG] PMIx_Fence() called - nprocs=%zu, ninfo=%zu\n", nprocs, ninfo);  
+    if (procs && nprocs > 0) {  
+        fprintf(stdout, "[DEBUG] PMIx_Fence() procs: ");  
+        for (size_t i = 0; i < nprocs; i++) {  
+            fprintf(stdout, "%s:%d ", procs[i].nspace, procs[i].rank);  
+        }  
+        fprintf(stdout, "\n");  
+    }  
+    if (info && ninfo > 0) {  
+        fprintf(stdout, "[DEBUG] PMIx_Fence() info keys: ");  
+        for (size_t i = 0; i < ninfo; i++) {  
+            fprintf(stdout, "%s ", info[i].key);  
+        }  
+        fprintf(stdout, "\n");  
+    }  
+
     pmix_cb_t *cb;
     pmix_status_t rc;
 
@@ -122,6 +139,17 @@ PMIX_EXPORT pmix_status_t PMIx_Fence_nb(const pmix_proc_t procs[], size_t nprocs
                                         const pmix_info_t info[], size_t ninfo,
                                         pmix_op_cbfunc_t cbfunc, void *cbdata)
 {
+    // Add parameter logging  
+    fprintf(stdout, "[DEBUG] PMIx_Fence_nb() called - nprocs=%zu, ninfo=%zu, cbfunc=%p, cbdata=%p\n",   
+            nprocs, ninfo, (void*)cbfunc, cbdata);  
+    if (procs && nprocs > 0) {  
+        fprintf(stdout, "[DEBUG] PMIx_Fence_nb() procs: ");  
+        for (size_t i = 0; i < nprocs; i++) {  
+            fprintf(stdout, "%s:%d ", procs[i].nspace, procs[i].rank);  
+        }  
+        fprintf(stdout, "\n");  
+    }  
+
     pmix_buffer_t *msg;
     pmix_cmd_t cmd = PMIX_FENCENB_CMD;
     pmix_status_t rc;

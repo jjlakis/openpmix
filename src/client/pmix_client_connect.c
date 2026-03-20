@@ -65,6 +65,16 @@ static void op_cbfunc(pmix_status_t status, void *cbdata);
 PMIX_EXPORT pmix_status_t PMIx_Connect(const pmix_proc_t procs[], size_t nprocs,
                                        const pmix_info_t info[], size_t ninfo)
 {
+    // Add parameter logging  
+    fprintf(stdout, "[DEBUG] PMIx_Connect() called - nprocs=%zu, ninfo=%zu\n", nprocs, ninfo);  
+    if (procs && nprocs > 0) {  
+        fprintf(stdout, "[DEBUG] PMIx_Connect() procs: ");  
+        for (size_t i = 0; i < nprocs; i++) {  
+            fprintf(stdout, "%s:%d ", procs[i].nspace, procs[i].rank);  
+        }  
+        fprintf(stdout, "\n");  
+    }  
+
     pmix_status_t rc;
     pmix_cb_t *cb;
 
