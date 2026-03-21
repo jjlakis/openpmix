@@ -65,6 +65,11 @@ static void op_cbfunc(pmix_status_t status, void *cbdata);
 PMIX_EXPORT pmix_status_t PMIx_Fence(const pmix_proc_t procs[], size_t nprocs,
                                      const pmix_info_t info[], size_t ninfo)
 {
+    pmix_cb_t *cb;
+    pmix_status_t rc;
+
+    PMIX_ACQUIRE_THREAD(&pmix_global_lock);
+
     // Add parameter logging  
     fprintf(stdout, "[DEBUG] PMIx_Fence() called - nprocs=%zu, ninfo=%zu\n", nprocs, ninfo);  
     if (procs && nprocs > 0) {  
@@ -82,10 +87,22 @@ PMIX_EXPORT pmix_status_t PMIx_Fence(const pmix_proc_t procs[], size_t nprocs,
         fprintf(stdout, "\n");  
     }  
 
-    pmix_cb_t *cb;
-    pmix_status_t rc;
-
-    PMIX_ACQUIRE_THREAD(&pmix_global_lock);
+    pmix_output_verbose(2, pmix_client_globals.fence_output,
+                        "pmix: PMIx_Fence() called with nprocs=%zu, ninfo=%zu", nprocs, ninfo);
+    
+    if (procs && nprocs > 0) {
+        for (size_t i = 0; i < nprocs; i++) {
+            pmix_output_verbose(2, pmix_client_globals.fence_output,
+                                "pmix:   procs[%zu]: nspace=%s, rank=%d", i, procs[i].nspace, procs[i].rank);
+        }
+    }
+    
+    if (info && ninfo > 0) {
+        for (size_t i = 0; i < ninfo; i++) {
+            pmix_output_verbose(2, pmix_client_globals.fence_output,
+                                "pmix:   info[%zu]: key=%s", i, info[i].key);
+        }
+    }
 
     pmix_output_verbose(2, pmix_client_globals.fence_output,
                         "pmix: executing fence");
@@ -139,6 +156,15 @@ PMIX_EXPORT pmix_status_t PMIx_Fence_nb(const pmix_proc_t procs[], size_t nprocs
                                         const pmix_info_t info[], size_t ninfo,
                                         pmix_op_cbfunc_t cbfunc, void *cbdata)
 {
+    pmix_buffer_t *msg;
+    pmix_cmd_t cmd = PMIX_FENCENB_CMD;
+    pmix_status_t rc;
+    pmix_cb_t *cb;
+    pmix_proc_t rg, *rgs;
+    size_t nrg;
+
+    PMIX_ACQUIRE_THREAD(&pmix_global_lock);
+
     // Add parameter logging  
     fprintf(stdout, "[DEBUG] PMIx_Fence_nb() called - nprocs=%zu, ninfo=%zu, cbfunc=%p, cbdata=%p\n",   
             nprocs, ninfo, (void*)cbfunc, cbdata);  
@@ -150,17 +176,23 @@ PMIX_EXPORT pmix_status_t PMIx_Fence_nb(const pmix_proc_t procs[], size_t nprocs
         fprintf(stdout, "\n");  
     }  
 
-    pmix_buffer_t *msg;
-    pmix_cmd_t cmd = PMIX_FENCENB_CMD;
-    pmix_status_t rc;
-    pmix_cb_t *cb;
-    pmix_proc_t rg, *rgs;
-    size_t nrg;
-
-    PMIX_ACQUIRE_THREAD(&pmix_global_lock);
-
     pmix_output_verbose(2, pmix_client_globals.fence_output,
-                        "pmix: fence_nb called");
+                        "JJ pmix log: PMIx_Fence_nb() called with nprocs=%zu, ninfo=%zu, cbfunc=%p, cbdata=%p",
+                        nprocs, ninfo, (void*)cbfunc, cbdata);
+    
+    if (procs && nprocs > 0) {
+        for (size_t i = 0; i < nprocs; i++) {
+            pmix_output_verbose(2, pmix_client_globals.fence_output,
+                                "JJ pmix log: PMIx_Fence_nb()  procs[%zu]: nspace=%s, rank=%d", i, procs[i].nspace, procs[i].rank);
+        }
+    }
+    
+    if (info && ninfo > 0) {
+        for (size_t i = 0; i < ninfo; i++) {
+            pmix_output_verbose(2, pmix_client_globals.fence_output,
+                                "JJ pmix log: PMIx_Fence_nb()  info[%zu]: key=%s", i, info[i].key);
+        }
+    }
 
     if (pmix_globals.init_cntr <= 0) {
         PMIX_RELEASE_THREAD(&pmix_global_lock);
