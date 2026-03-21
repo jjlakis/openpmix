@@ -1370,6 +1370,10 @@ PMIX_EXPORT pmix_status_t PMIx_Put(pmix_scope_t scope,
                                    const char key[],
                                    pmix_value_t *val)
 {
+    // Log here all the parameters
+    fprintf(stdout, "[DEBUG] PMIx_Put() called - scope=%d, key=%s, val=%p\n",   
+            scope, key, (void*)val);
+
     pmix_cb_t *cb;
     pmix_status_t rc;
 
@@ -1527,6 +1531,9 @@ error:
 
 PMIX_EXPORT pmix_status_t PMIx_Commit(void)
 {
+    // Log here all the params
+    fprintf(stdout, "[DEBUG] PMIx_Commit() called\n");
+    
     pmix_cb_t *cb;
     pmix_status_t rc;
 
