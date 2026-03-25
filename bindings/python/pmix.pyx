@@ -1829,12 +1829,17 @@ cdef class PMIxServer(PMIxClient):
                 return PMIX_ERR_INIT
 
         # allocate and load pmix info structs from python list of dictionaries
+        cdef pmix_status_t rc
         info_ptr = &info
         rc = pmix_alloc_info(info_ptr, &sz, dicts)
+        print("[pmix] PMIx_server_init: sz=", sz)
         if sz > 0:
-            rc = PMIx_server_init(&self.myserver, info, sz)
+            with nogil:
+                rc = PMIx_server_init(&self.myserver, info, sz)
         else:
-            rc = PMIx_server_init(&self.myserver, NULL, 0)
+            with nogil:
+                rc = PMIx_server_init(&self.myserver, NULL, 0)
+        print("[pmix] PMIx_server_init returned:", rc)
         return rc
 
     def server_module_init(self):
@@ -1892,7 +1897,12 @@ cdef class PMIxServer(PMIxClient):
 
     def finalize(self):
         # finalize
-        return PMIx_server_finalize()
+        cdef pmix_status_t frc
+        print("[pmix] PMIx_server_finalize")
+        with nogil:
+            frc = PMIx_server_finalize()
+        print("[pmix] PMIx_server_finalize returned:", frc)
+        return frc
 
     def generate_regex(self, hosts:list):
         cdef char *regex;
@@ -1957,6 +1967,8 @@ cdef class PMIxServer(PMIxClient):
         cdef pmix_info_t *info
         cdef pmix_info_t **info_ptr
         cdef size_t sz
+        cdef pmix_status_t rc
+        cdef int cnlocalprocs = nlocalprocs
         global active
         # convert the args into the necessary C-arguments
         pmix_copy_nspace(nspace, ns)
@@ -1965,10 +1977,14 @@ cdef class PMIxServer(PMIxClient):
         info_ptr = &info
         rc = pmix_alloc_info(info_ptr, &sz, dicts)
 
+        print("[pmix] PMIx_server_register_nspace: ns=", ns, "nlocalprocs=", nlocalprocs, "sz=", sz)
         if sz > 0:
-            rc = PMIx_server_register_nspace(nspace, nlocalprocs, info, sz, NULL, NULL)
+            with nogil:
+                rc = PMIx_server_register_nspace(nspace, cnlocalprocs, info, sz, NULL, NULL)
         else:
-            rc = PMIx_server_register_nspace(nspace, nlocalprocs, NULL, 0, NULL, NULL)
+            with nogil:
+                rc = PMIx_server_register_nspace(nspace, cnlocalprocs, NULL, 0, NULL, NULL)
+        print("[pmix] PMIx_server_register_nspace returned:", rc)
         return rc
 
     # Deregister a namespace
@@ -1981,7 +1997,9 @@ cdef class PMIxServer(PMIxClient):
         global active
         # convert the args into the necessary C-arguments
         pmix_copy_nspace(nspace, ns)
-        PMIx_server_deregister_nspace(nspace, NULL, NULL)
+        print("[pmix] PMIx_server_deregister_nspace: ns=", ns)
+        with nogil:
+            PMIx_server_deregister_nspace(nspace, NULL, NULL)
         return
 
     # Register resources
@@ -1989,6 +2007,7 @@ cdef class PMIxServer(PMIxClient):
         cdef pmix_info_t *info
         cdef pmix_info_t **info_ptr
         cdef size_t sz
+        cdef pmix_status_t rc
 
         # allocate and load pmix info structs from python list of dictionaries
         info_ptr = &info
@@ -1996,7 +2015,8 @@ cdef class PMIxServer(PMIxClient):
         if PMIX_SUCCESS != rc:
             return rc
 
-        rc = PMIx_server_register_resources(info, sz, NULL, NULL)
+        with nogil:
+            rc = PMIx_server_register_resources(info, sz, NULL, NULL)
         return rc
 
     # Deregister resources
@@ -2004,6 +2024,7 @@ cdef class PMIxServer(PMIxClient):
         cdef pmix_info_t *info
         cdef pmix_info_t **info_ptr
         cdef size_t sz
+        cdef pmix_status_t rc
 
         # allocate and load pmix info structs from python list of dictionaries
         info_ptr = &info
@@ -2011,7 +2032,8 @@ cdef class PMIxServer(PMIxClient):
         if PMIX_SUCCESS != rc:
             return rc
 
-        rc = PMIx_server_deregister_resources(info, sz, NULL, NULL)
+        with nogil:
+            rc = PMIx_server_deregister_resources(info, sz, NULL, NULL)
         return rc
 
     # Register a client process
@@ -2027,10 +2049,16 @@ cdef class PMIxServer(PMIxClient):
     #
     def register_client(self, proc:dict, uid:int, gid:int):
         global active
-        cdef pmix_proc_t p;
+        cdef pmix_proc_t p
+        cdef pmix_status_t rc
+        cdef uid_t cuid = uid
+        cdef gid_t cgid = gid
         pmix_copy_nspace(p.nspace, proc['nspace'])
         p.rank = proc['rank']
-        rc = PMIx_server_register_client(&p, uid, gid, NULL, NULL, NULL)
+        print("[pmix] PMIx_server_register_client: nspace=", proc['nspace'], "rank=", proc['rank'])
+        with nogil:
+            rc = PMIx_server_register_client(&p, cuid, cgid, NULL, NULL, NULL)
+        print("[pmix] PMIx_server_register_client returned:", rc)
         return rc
 
     # Deregister a client process
@@ -2040,11 +2068,12 @@ cdef class PMIxServer(PMIxClient):
     #
     def deregister_client(self, proc:dict):
         global active
-        cdef pmix_proc_t p;
+        cdef pmix_proc_t p
         pmix_copy_nspace(p.nspace, proc['nspace'])
         p.rank = proc['rank']
-        rc = PMIx_server_deregister_client(&p, NULL, NULL)
-        return rc
+        with nogil:
+            PMIx_server_deregister_client(&p, NULL, NULL)
+        return PMIX_SUCCESS
 
     # Setup the environment of a child process that is to be forked
     # by the host
@@ -2057,14 +2086,18 @@ cdef class PMIxServer(PMIxClient):
     #          with PMIx envars (dict)
     #
     def setup_fork(self, proc:dict, envin:dict):
-        cdef pmix_proc_t p;
-        cdef char **penv = NULL;
+        cdef pmix_proc_t p
+        cdef char **penv = NULL
         cdef unicode pstring
+        cdef pmix_status_t rc
         pmix_copy_nspace(p.nspace, proc['nspace'])
         p.rank = proc['rank']
         # convert the incoming dictionary to an array
         # of strings
-        rc = PMIx_server_setup_fork(&p, &penv)
+        print("[pmix] PMIx_server_setup_fork: nspace=", proc['nspace'], "rank=", proc['rank'])
+        with nogil:
+            rc = PMIx_server_setup_fork(&p, &penv)
+        print("[pmix] PMIx_server_setup_fork returned:", rc)
         if PMIX_SUCCESS == rc:
             # update the incoming dictionary
             n = 0
@@ -2080,12 +2113,14 @@ cdef class PMIxServer(PMIxClient):
 
     def dmodex_request(self, proc, dataout:dict):
         global active
-        cdef pmix_proc_t p;
+        cdef pmix_proc_t p
+        cdef pmix_status_t rc
         pmix_copy_nspace(p.nspace, proc['nspace'])
         p.rank = proc['rank']
         active.clear()
         pybo = (None, 0)
-        rc = PMIx_server_dmodex_request(&p, dmodx_cbfunc, NULL);
+        with nogil:
+            rc = PMIx_server_dmodex_request(&p, dmodx_cbfunc, NULL)
         if PMIX_SUCCESS == rc:
             active.wait()
             # transfer the data to the dictionary
@@ -2095,10 +2130,11 @@ cdef class PMIxServer(PMIxClient):
 
     def setup_application(self, ns:str, dicts:list):
         global active
-        cdef pmix_nspace_t nspace;
+        cdef pmix_nspace_t nspace
         cdef pmix_info_t *info
         cdef pmix_info_t **info_ptr
         cdef size_t sz
+        cdef pmix_status_t rc
         dataout = []
         pmix_copy_nspace(nspace, ns)
 
@@ -2107,7 +2143,8 @@ cdef class PMIxServer(PMIxClient):
         rc = pmix_alloc_info(info_ptr, &sz, dicts)
 
         active.clear()
-        rc = PMIx_server_setup_application(nspace, info, sz, setupapp_cbfunc, NULL);
+        with nogil:
+            rc = PMIx_server_setup_application(nspace, info, sz, setupapp_cbfunc, NULL)
         if PMIX_SUCCESS == rc:
             active.wait()
             # transfer the data to the dictionary
@@ -2150,6 +2187,7 @@ cdef class PMIxServer(PMIxClient):
         cdef pmix_info_t *directives
         cdef pmix_info_t **directives_ptr
         cdef size_t ndirs
+        cdef pmix_status_t rc
         ndirs   = 0
         dataout = []
 
@@ -2159,8 +2197,9 @@ cdef class PMIxServer(PMIxClient):
 
         # call the API
         active.clear()
-        rc = PMIx_server_collect_inventory(directives, ndirs,
-                                           collectinventory_cbfunc, NULL)
+        with nogil:
+            rc = PMIx_server_collect_inventory(directives, ndirs,
+                                               collectinventory_cbfunc, NULL)
         if PMIX_SUCCESS == rc:
             active.wait()
             # transfer the data to the dictionary
@@ -2174,6 +2213,7 @@ cdef class PMIxServer(PMIxClient):
         cdef pmix_info_t **info_ptr
         cdef size_t ndirs
         cdef size_t ninfo
+        cdef pmix_status_t rc
         ndirs   = 0
         ninfo   = 0
 
@@ -2184,16 +2224,18 @@ cdef class PMIxServer(PMIxClient):
         rc = pmix_alloc_info(info_ptr, &ninfo, pyinfo)
 
         # call the API
-        rc = PMIx_server_deliver_inventory(info, ninfo, directives, ndirs,
-                                           NULL, NULL)
+        with nogil:
+            rc = PMIx_server_deliver_inventory(info, ninfo, directives, ndirs,
+                                               NULL, NULL)
         return rc
 
     def setup_local_support(self, ns:str, ilist:list):
         global active
-        cdef pmix_nspace_t nspace;
+        cdef pmix_nspace_t nspace
         cdef pmix_info_t *info
         cdef pmix_info_t **info_ptr
         cdef size_t sz
+        cdef pmix_status_t rc
         pmix_copy_nspace(nspace, ns)
         # convert the info list
         info_ptr = &info
@@ -2201,9 +2243,11 @@ cdef class PMIxServer(PMIxClient):
         if PMIX_SUCCESS != rc:
             return rc
         if sz > 0:
-            rc = PMIx_server_setup_local_support(nspace, info, sz, NULL, NULL);
+            with nogil:
+                rc = PMIx_server_setup_local_support(nspace, info, sz, NULL, NULL)
         else:
-            rc = PMIx_server_setup_local_support(nspace, NULL, 0, NULL, NULL);
+            with nogil:
+                rc = PMIx_server_setup_local_support(nspace, NULL, 0, NULL, NULL)
         if PMIX_SUCCESS == rc:
             active.wait()
         return rc
@@ -2215,6 +2259,7 @@ cdef class PMIxServer(PMIxClient):
         cdef pmix_info_t *directives
         cdef pmix_info_t **directives_ptr
         cdef size_t ndirs
+        cdef pmix_status_t rc
         source  = NULL
         ndirs   = 0
         channel = pychannel
@@ -2240,17 +2285,21 @@ cdef class PMIxServer(PMIxClient):
         rc = pmix_alloc_info(directives_ptr, &ndirs, pydirs)
 
         # call API
-        rc = PMIx_server_IOF_deliver(source, channel, bo, directives, ndirs,
-                                     NULL, NULL)
+        with nogil:
+            rc = PMIx_server_IOF_deliver(source, channel, bo, directives, ndirs,
+                                         NULL, NULL)
         return rc
 
     def define_process_set(members:list, name:str):
         cdef pmix_proc_t *procs
         cdef size_t nprocs
+        cdef pmix_status_t rc
+        cdef char *cpyset
         nprocs = 0
 
         # convert set name
         pyset = name.encode('ascii')
+        cpyset = pyset
         # convert list of procs to array of pmix_proc_t's
         if members is None:
             return PMIX_ERR_BAD_PARAM
@@ -2263,16 +2312,21 @@ cdef class PMIxServer(PMIxClient):
             pmix_free_procs(procs, nprocs)
             return rc
         # define the set
-        rc = PMIx_server_define_process_set(procs, nprocs, pyset)
+        with nogil:
+            rc = PMIx_server_define_process_set(procs, nprocs, cpyset)
         pmix_free_procs(procs, nprocs)
         return rc
 
     def delete_process_set(name:str):
+        cdef pmix_status_t rc
+        cdef char *cpyset
 
         # convert set name
         pyset = name.encode('ascii')
+        cpyset = pyset
         # delete the set
-        rc = PMIx_server_delete_process_set(pyset)
+        with nogil:
+            rc = PMIx_server_delete_process_set(cpyset)
         return rc
 
     def session_control(sessionID:int, ilist:list):
