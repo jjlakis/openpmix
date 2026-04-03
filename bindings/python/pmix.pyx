@@ -2295,6 +2295,7 @@ cdef class PMIxServer(PMIxClient):
         return rc
 
 cdef int clientconnected(pmix_proc_t *proc, void *server_object,
+                         pmix_info_t info[], size_t ninfo,
                          pmix_op_cbfunc_t cbfunc, void *cbdata) with gil:
     keys = pmixservermodule.keys()
     if 'clientconnected' in keys:
