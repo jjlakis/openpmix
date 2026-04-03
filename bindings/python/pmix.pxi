@@ -952,6 +952,8 @@ cdef int pmix_load_value(pmix_value_t *value, val:dict):
     elif val['val_type'] == PMIX_STRING:
         if isinstance(val['value'], str):
             pykey = val['value'].encode('ascii')
+        elif isinstance(val['value'], bytearray):
+            pykey = bytes(val['value'])
         else:
             pykey = val['value']
         try:
