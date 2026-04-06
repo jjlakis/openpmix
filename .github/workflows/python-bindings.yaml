@@ -43,3 +43,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Set environment variables
+        run: |
+          echo "PYTHONPATH=$(find "$PWD/bindings/python" -type f -name '*.so' -exec dirname {} \; -quit)" >> "$GITHUB_ENV"
+          echo "LD_LIBRARY_PATH=$RUNNER_TEMP/pmixinstall/lib" >> "$GITHUB_ENV"
+
+      - name: Run python bindings test
+        env:
+          PYTHONPATH: ${{ env.PYTHONPATH }}
+          LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}
+        working-directory: ./bindings/python/tests/python
+        timeout-minutes: 5
+        run: |
+          python3 server.py
