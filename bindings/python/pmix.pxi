@@ -37,13 +37,8 @@ class myLock(threading.Event):
         return self.status
 
     def cache_data(self, data, sz):
-        self.data = array.array('B', data[0])
-        # need to copy the data bytes as the
-        # PMIx server will free it upon return
-        n = 1
-        while n < sz:
-            self.data.append(data[n])
-            n += 1
+        # data is already a bytes slice of exactly sz bytes (data[:sz] from C)
+        self.data = array.array('B', data)
         self.sz = sz
 
     def fetch_data(self):

@@ -254,10 +254,10 @@ def pypmix_validation_cbfunc(int rc, dict byteobject, list info, dict cbdata_dic
 
 cdef void dmodx_cbfunc(pmix_status_t status,
                        char *data, size_t sz,
-                       void *cbdata) noexcept:
+                       void *cbdata) noexcept with gil:
     global active
     if PMIX_SUCCESS == status:
-        active.cache_data(data, sz)
+        active.cache_data(data[:sz], sz)
     active.set(status)
     return
 
