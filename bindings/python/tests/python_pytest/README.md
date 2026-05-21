@@ -11,7 +11,7 @@ The `pmix` Python module must be importable (built and installed from the OpenPM
 ## Run all tests
 
 ```
-pytest
+pytest -sv
 ```
 
 ## Run a specific test file
