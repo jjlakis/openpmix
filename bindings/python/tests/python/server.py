@@ -96,8 +96,10 @@ def main():
         if stdout_done and stderr_done:
             break
     print("FINALIZING")
-    foo.finalize()
 
+    foo.deregister_client({'nspace':"testnspace", 'rank':0})
+
+    foo.finalize()
 
 if __name__ == '__main__':
     global killer

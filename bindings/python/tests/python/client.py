@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
 import time, sys
+from xxlimited import foo
 from pmix import *
+
+PMIX_EVENT_DMODEX_REQUEST=-3001
+PMIX_EVENT_DMODEX_RESPONSE=-3002
 
 test_count = 0
 test_fails = 0
@@ -103,6 +107,20 @@ def test_register_event_handler(client, pycodes, info, test_pyhandler):
         test_fails = test_fails + 1
         print("REGISTER EVENT HANDLER TEST FAILED: ", client.error_string(rc))
 
+def test_notify_event(client, evid, info, pyresults):
+    print("NOTIFY EVENT", file=sys.stderr)
+    global test_count, test_fails
+    test_count = test_count + 1
+    rc = client.notify_event(evid, info, pyresults)
+    if rc != 0 and rc != -47:
+        test_fails = test_fails + 1
+        print("NOTIFY EVENT TEST FAILED: ", client.error_string(rc))
+
+def print_my_dmodex_data(evid:int, st:int, pysource:dict, pyinfo:list, pyresults:list):
+    print("DMODEX HANDLER", file=sys.stderr)
+    print("DMODEX DATA: ", pyinfo, file=sys.stderr)
+    return PMIX_EVENT_ACTION_COMPLETE, []
+
 def main():
     global test_complete
     foo = PMIxClient()
@@ -170,6 +188,18 @@ def main():
 
     if test_complete == 0:
         print("MODEL EVENT FAILED TO ARRIVE", file=sys.stderr)
+
+    # Test handler that prints back the dmodex data
+    test_register_event_handler(foo, [PMIX_EVENT_DMODEX_RESPONSE], None, print_my_dmodex_data)
+    test_notify_event(foo, PMIX_EVENT_DMODEX_REQUEST, None, None)
+
+    loopcount = 0
+    while test_complete != 1 and loopcount < 3:
+        time.sleep(1)
+        loopcount = loopcount + 1
+
+    if test_complete == 0:
+        print("DMODEX EVENT FAILED TO ARRIVE", file=sys.stderr)
 
     # finalize
     info = []
