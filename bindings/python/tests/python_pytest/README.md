@@ -17,16 +17,11 @@ pytest -sv
 ## Run a specific test file
 
 ```
-pytest test_client_kv.py
+pytest -sv test_client_kv.py
 ```
 
 ## Run a specific test
 
 ```
-pytest test_client_kv.py::TestClientKV::test_put
+pytest -sv test_client_kv.py::TestClientKV::test_put
 ```
-
-## Fixture scopes
-
-- `server` — started once per test module, shared across all tests in that file
-- `client` — created fresh for each individual test
